@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <Wire.h>
 #include <U8glib.h>
 #include <AFMotor.h>
@@ -20,6 +21,30 @@ int consecutiveWrongResponses = 0;
 int depthDifference = 100;
 const int maxConsecutiveWrongResponses = 3;
 
+// Function to wait for the subject's response with timeout
+int waitForResponseWithTimeout() {
+  unsigned long startTime = millis();  // Record the start time
+
+  while (millis() - startTime < 10000) {  // Timeout after 10 seconds
+    if (digitalRead(closeButtonPin) == LOW) {
+      currentPosition = targetPosition - depthDifference / 2;
+      // Add code to move the motor to the endstop
+      motor.setSpeed(100); // Set the motor speed
+      motor.step(-200, FORWARD, SINGLE); // Move the motor to the endstop
+      return 1;  // Subject pressed "Close" button
+    } else if (digitalRead(farButtonPin) == LOW) {
+      currentPosition = targetPosition + depthDifference / 2;
+      // Add code to move the motor to the endstop
+      motor.setSpeed(100); // Set the motor speed
+      motor.step(200, FORWARD, SINGLE); // Move the motor to the endstop
+      return 0;  // Subject pressed "Far" button
+    }
+  }
+
+  // Timeout reached, return a default value (you can adjust as needed)
+  return -1;
+}
+
 void setup() {
   // Set up OLED display
   u8g.begin();
@@ -38,8 +63,10 @@ void setup() {
 void loop() {
   if (!testEnded) {
     // Move the center pole to a random position
+    int waitForResponseWithTimeout(); // Declare the waitForResponseWithTimeout() function
+
     targetPosition = random(500, 1000);  // Larger depth values initially
-    
+
     int stepsToMove = targetPosition - currentPosition;
 
     // Display test information on OLED
@@ -47,10 +74,10 @@ void loop() {
     do {
       u8g.drawStr(0, 10, "Actual: ");
       u8g.drawStr(60, 10, String(currentPosition).c_str());
-      u8g.drawStr(0, 20, "Target: ");
+      u8g.drawStr(0, 25, "Target: ");
       u8g.drawStr(60, 20, String(targetPosition).c_str());
-      u8g.drawStr(0, 60, String("Right: " + String(correctResponses)).c_str());
-      u8g.drawStr(0, 70, String("Wrong: " + String(consecutiveWrongResponses)).c_str());
+      u8g.drawStr(0, 40, String("Right: " + String(correctResponses)).c_str());
+      u8g.drawStr(0, 60, String("Wrong: " + String(consecutiveWrongResponses)).c_str());
     } while (u8g.nextPage());
 
     // Print motor movement to serial monitor
@@ -63,7 +90,7 @@ void loop() {
     motor.step(abs(stepsToMove), (stepsToMove > 0) ? FORWARD : BACKWARD, SINGLE);
 
     // Wait for the subject to respond
-    int response = waitForResponse();
+    int response = waitForResponseWithTimeout();
 
     // Check the correctness of the response
     if (response == (stepsToMove > 0)) {
@@ -119,34 +146,4 @@ void loop() {
       delay(1000);  // Avoid immediate button press recognition
     }
   }
-}
-
-// Function to wait for the subject's response
-int waitForResponse() {
-  while (true) {
-    if (digitalRead(closeButtonPin) == LOW) {
-      currentPosition = targetPosition - depthDifference / 2;
-      return 1;  // Subject pressed "Close" button
-    } else if (digitalRead(farButtonPin) == LOW) {
-      currentPosition = targetPosition + depthDifference / 2;
-      return 0;  // Subject pressed "Far" button
-    }
-  }
-}
-int waitForResponse() {
-    while (true) {
-        if (digitalRead(closeButtonPin) == LOW) {
-            currentPosition = targetPosition - depthDifference / 2;
-            // Add code to move the motor to the endstop
-            motor.setSpeed(100); // Set the motor speed
-            motor.step(-200); // Move the motor to the endstop
-            return 1;  // Subject pressed "Close" button
-        } else if (digitalRead(farButtonPin) == LOW) {
-            currentPosition = targetPosition + depthDifference / 2;
-            // Add code to move the motor to the endstop
-            motor.setSpeed(100); // Set the motor speed
-            motor.step(200); // Move the motor to the endstop
-            return 0;  // Subject pressed "Far" button
-        }
-    }
 }
