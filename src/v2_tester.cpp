@@ -30,6 +30,7 @@ void decreaseDeviation();
 
 void setup() {
   Serial.begin(9600);
+  Serial.println("Initializing...");
   
   // Set up motor
   motor.setSpeed(100); // Adjust the speed as needed
@@ -38,9 +39,14 @@ void setup() {
   pinMode(endstopPin, INPUT);
   pinMode(nearButtonPin, INPUT);
   pinMode(farButtonPin, INPUT);
+  
+  // Seed the random number generator with an analog pin value
+  randomSeed(analogRead(A0));
 }
 
 void loop() {
+  Serial.println("Looping...");
+  
   // Reset the game if both buttons are pressed
   if (analogRead(nearButtonPin) < 100 && analogRead(farButtonPin) < 100) {
     resetGame();
@@ -62,6 +68,8 @@ void loop() {
 }
 
 void moveMotor() {
+  Serial.println("Moving motor...");
+  
   if (deviation != 0) {
     // Move the stepper motor based on the deviation
     motor.step(deviation, FORWARD, SINGLE);
@@ -76,6 +84,8 @@ void moveMotor() {
 }
 
 void checkGuess(String guess) {
+  Serial.println("Checking guess...");
+  
   if (guess == "near" && deviation > 0) {
     // Correct guess for near
     correctDeviation = deviation;
@@ -101,17 +111,18 @@ void checkGuess(String guess) {
 }
 
 void decreaseDeviation() {
+  Serial.println("Decreasing deviation...");
+  
   // Decrease the deviation for the next round
-  if (deviation > 0) {
-    deviation -= 10;  // Adjust the decrement as needed
-  } else if (deviation < 0) {
-    deviation += 10;  // Adjust the decrement as needed
-  }
+  int randomChange = random(20) - 10;  // Random value between -10 and 10
+  deviation += randomChange;  // Adjust the deviation with random value
 }
 
 void resetGame() {
+  Serial.println("Resetting game...");
+  
   // Reset game variables
-  deviation = 100;  // Starting with a larger deviation
+  deviation = random(100) - 50;  // Random initial deviation between -50 and 50
   correctDeviation = 0;
   wrongGuessCount = 0;
   roundNumber++;
@@ -125,6 +136,8 @@ void resetGame() {
 }
 
 void updateDisplay() {
+  Serial.println("Updating display...");
+  
   // Update OLED display with round number, wrong guesses, and feedback messages
   u8g.firstPage();
   do {
@@ -145,6 +158,8 @@ void updateDisplay() {
 }
 
 void displayFeedback(String message) {
+  Serial.println("Displaying feedback...");
+  
   // Display feedback on the OLED screen
   u8g.firstPage();
   do {
@@ -158,6 +173,8 @@ void displayFeedback(String message) {
 }
 
 void displayGameOver() {
+  Serial.println("Game over...");
+  
   // Display game over message with mean value
   int meanValue = correctDeviation / 3;
   String gameOverMessage = "Game Over! Mean Value: " + String(meanValue);
