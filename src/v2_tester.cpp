@@ -17,6 +17,16 @@ const int farButtonPin = A3;    // Far button pin (analog pin A3)
 int deviation = 0;
 int correctDeviation = 0;
 int wrongGuessCount = 0;
+int roundNumber = 0;
+
+// Function declarations
+void displayFeedback(String message);
+void displayGameOver();
+void resetGame();
+void updateDisplay();
+void moveMotor();
+void checkGuess(String guess);
+void decreaseDeviation();
 
 void setup() {
   Serial.begin(9600);
@@ -104,6 +114,7 @@ void resetGame() {
   deviation = 100;  // Starting with a larger deviation
   correctDeviation = 0;
   wrongGuessCount = 0;
+  roundNumber++;
   
   // Move the motor back to the center
   motor.step(deviation, BACKWARD, SINGLE);
@@ -114,9 +125,23 @@ void resetGame() {
 }
 
 void updateDisplay() {
-  // Add your OLED display update code here
-  // This function should update the display based on the current state
-  // of the game, motor position, and feedback messages.
+  // Update OLED display with round number, wrong guesses, and feedback messages
+  u8g.firstPage();
+  do {
+    u8g.setFont(u8g_font_profont12);
+    
+    // Display round number
+    u8g.drawStr(0, 15, ("Round: " + String(roundNumber)).c_str());
+    
+    // Display wrong guesses
+    u8g.drawStr(0, 30, ("Wrong Guesses: " + String(wrongGuessCount)).c_str());
+    
+    // Display feedback messages
+    u8g.drawStr(0, 45, "Feedback:");
+    u8g.drawStr(0, 60, "------------------");
+    u8g.drawStr(0, 75, " ");
+    u8g.drawStr(0, 90, " ");
+  } while (u8g.nextPage());
 }
 
 void displayFeedback(String message) {
@@ -124,7 +149,9 @@ void displayFeedback(String message) {
   u8g.firstPage();
   do {
     u8g.setFont(u8g_font_profont12);
-    u8g.drawStr(0, 15, message.c_str());
+    
+    // Display feedback messages
+    u8g.drawStr(0, 75, message.c_str());
   } while (u8g.nextPage());
   
   delay(1000);  // Display for 1 second
@@ -138,6 +165,8 @@ void displayGameOver() {
   u8g.firstPage();
   do {
     u8g.setFont(u8g_font_profont12);
-    u8g.drawStr(0, 15, gameOverMessage.c_str());
+    
+    // Display game over message
+    u8g.drawStr(0, 75, gameOverMessage.c_str());
   } while (u8g.nextPage());
 }
