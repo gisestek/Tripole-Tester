@@ -1,5 +1,9 @@
 #Human depth perception test device#
 
-Code written with the help of ChatGPT and Copilot.
 
-Device runs on Arduino Uno, DK electronics Stepper motor shield and NEMA17, small OLED display.
+Hardware:
+- ESP32
+- 9g hobby servo
+- steel wire (i used welding filler rod)
+- 3D printed parts to guide the wire
+-   thingiverse: 
