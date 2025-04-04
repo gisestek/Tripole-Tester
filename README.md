@@ -2,26 +2,22 @@
 
 # Ihmisen syvyysnäön testauslaite
 
+Testi perustuu klassiseen Howard-Dolman -testin periaatteeseen. Laitteessa on kolme pystysuoraa tolppaa (tai sauvaa) rivissä. Koehenkilö katsoo tolppia tietytä etäisyydeltä. Keskimmäistä tolppaa voidaan liikuttaa servo-ohjatusti eteen- tai taaksepäin suhteessa reunimmaisiin tolppiin. Koehenkilön tehtävä on arvioida, onko keskimmäinen tolppa lähempänä vai kauempana kuin reunimmaiset. Etäisyysero reunimmaisiin tolppiin pienenee testin edetessä, ja kun testattava on tehny kolme virhettä, on löydetty stereoerottelykyvyn raja.
+
+![Testin periaatekuva](stereonäkötesti.png)
+
 ## Laitteisto:
 
 * ESP32
 * 9g servo
 * Teräslanka (esim TIG-hitsauslankaa)
 * 3D-tulostetut osat 
-** [Onshape mallit](https://cad.onshape.com/documents/015ba60578bb0acbbb4cbba4/w/e4783b3f15ab7f564ce377d3/e/8b8e0c89aea4ec2eb4cf4481?renderMode=0&uiState=67ef9e59e533a868c3031aed)
+* [Onshape mallit](https://cad.onshape.com/documents/015ba60578bb0acbbb4cbba4/w/e4783b3f15ab7f564ce377d3/e/8b8e0c89aea4ec2eb4cf4481?renderMode=0&uiState=67ef9e59e533a868c3031aed)
 
+# Stereonäkötestilaitteen katseluetäisyys
 
-# Stereonäkötestilaitteen Katseluetäisyys
-
-Tässä dokumentissa lasketaan suositeltu katseluetäisyys stereonäkötestilaitteelle, jotta sillä voidaan mitata stereonäön tarkkuutta noin 10 kaarisekunnin tasolle asti.
-
-## Testilaitteen Rakenne
-
-Testi perustuu klassiseen Howard-Dolman -testin periaatteeseen. Laitteessa on kolme pystysuoraa tolppaa (tai sauvaa) rivissä. Koehenkilö katsoo tolppia tietytä etäisyydeltä. Keskimmäistä tolppaa voidaan liikuttaa servo-ohjatusti eteen- tai taaksepäin suhteessa reunimmaisiin tolppiin. Koehenkilön tehtävä on arvioida, onko keskimmäinen tolppa lähempänä vai kauempana kuin reunimmaiset.
-
-![Testin periaatekuva](stereonäkötesti.png)
-
-
+Jotta voidaan mitata stereonäön tarkkuutta noin 10 kaarisekunnin tasolle asti:
+ 
 **Laitteiston parametrit:**
 * Tolppien välinen sivuttaisetäisyys: n. 10 mm
 * Keskimmäisen tolpan liikerata (syvyyssuunnassa): n. 18 mm ( ±9 mm keskikohdasta)
@@ -66,8 +62,6 @@ Tavoitteena on laskea etäisyys `D`, jolla laitteen suurin mahdollinen syvyysero
         `D ≈ √[ 12.067 m² ]`
         `D ≈ 3.47 m`
 
-## Johtopäätös
+Tällöin testilaitteen suositeltu katseluetäisyys on noin **3,5 metriä**.
 
-Testilaitteen suositeltu katseluetäisyys on noin **3,5 metriä**.
-
-Tällä etäisyydellä laitteen suurin fyysinen syvyyssiirtymä (9 mm) vastaa noin 10 kaarisekunnin stereotarkkuutta (olettaen 65 mm IPD). Tämä mahdollistaa testauksen tavoitellulla tarkkuustasolla laitteen mekaanisten rajoitusten puitteissa. Testiprotokollassa pyritään löytämään pienin havaittava siirtymä, mutta tämä laskettu etäisyys varmistaa, että 10 kaarisekunnin taso on saavutettavissa.
+Tällä etäisyydellä laitteen suurin fyysinen syvyyssiirtymä (9 mm) vastaa noin 10 kaarisekunnin stereotarkkuutta (olettaen 65 mm IPD). Tämä mahdollistaa testauksen tavoitellulla tarkkuustasolla laitteen mekaanisten rajoitusten puitteissa. Testiprotokollassa pyritään löytämään pienin havaittava siirtymä, mutta tämä laskettu etäisyys varmistaa, että 10 kaarisekunnin taso on saavutettavissa. Jos teet erikokoisen laitteen, etäisyys on toki eri.
