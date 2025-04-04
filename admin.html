@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stereonäkötesti - Valvoja</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        h1, h2, h3 { color: #333; }
+        p { color: #555; }
+        .container { max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button, input[type=submit], input[type=button] { font-size: 18px; padding: 10px 15px; margin: 10px 5px; border: none; border-radius: 8px; background-color: #007BFF; color: white; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover, input[type=submit]:hover, input[type=button]:hover { background-color: #0056b3; }
+        button.secondary-btn { background-color: #6c757d; }
+        button.secondary-btn:hover { background-color: #5a6268; }
+        button.download-btn { background-color: #28a745; }
+        button.download-btn:hover { background-color: #218838; }
+        input[type=text] { font-size: 18px; padding: 10px; margin: 10px 0; width: calc(80% - 22px); max-width: 280px; border: 1px solid #ccc; border-radius: 5px; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #007BFF; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .status { font-weight: bold; margin: 15px 0; font-size: 1.1em; }
+        .error { color: red; font-weight: bold; }
+        #admin-status-view, #name-entry-view { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stereonäkötesti - Valvoja</h1>
+        <div id="message-area"></div>
+
+        <!-- Name Entry View -->
+        <div id="name-entry-view">
+            <h2>Aseta koehenkilön nimi</h2>
+            <form id="setNameForm">
+                <label for="subjectNameInput">Koehenkilön nimi:</label><br>
+                <input type="text" id="subjectNameInput" name="subjectName" required><br>
+                <input type="button" value="Aseta nimi ja valmistaudu" onclick="setName()">
+            </form>
+        </div>
+
+        <!-- Status and Controls View -->
+        <div id="admin-status-view" style="display: none;">
+            <!-- Content dynamically updated by JS -->
+        </div>
+
+        <!-- Results Area -->
+        <div id="results-area">
+            <h2>Tallennetut tulokset</h2>
+            <table id="resultsTable">
+                <thead>
+                    <tr><th>Nimi</th><th>Tulos (asteina)</th><th>Historia</th></tr>
+                </thead>
+                <tbody>
+                    <!-- Results populated by JS -->
+                </tbody>
+            </table>
+            <p id="no-results-msg" style="display: none;">Ei vielä tallennettuja tuloksia.</p>
+            <button id="downloadButton" class="download-btn" onclick="downloadCSV()" style="display: none;">Lataa kaikki tulokset (CSV)</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Constants ---
+        const MAX_WRONG_GUESSES = 3;
+        const INITIAL_DEFLECTION = 30.0;
+        const MAX_DEFLECTION = 37.0;
+        const MIN_DEFLECTION = 0.5;
+
+        // --- State Variables (Keys for localStorage) ---
+        const LS_KEY_PREFIX = 'stereoTest_';
+        const LS_SUBJECT_NAME = LS_KEY_PREFIX + 'subjectName';
+        const LS_GAME_STARTED = LS_KEY_PREFIX + 'gameStarted';
+        const LS_GAME_OVER = LS_KEY_PREFIX + 'gameOver';
+        const LS_DEFLECTION = LS_KEY_PREFIX + 'deflection';
+        const LS_WRONG_GUESSES = LS_KEY_PREFIX + 'wrongGuesses';
+        const LS_DEFLECTION_HISTORY = LS_KEY_PREFIX + 'deflectionHistory';
+        const LS_ALL_RESULTS = LS_KEY_PREFIX + 'allResults';
+        const LS_SIMULATED_POSITION = LS_KEY_PREFIX + 'simulatedPosition'; // 'front' or 'back'
+
+        // --- Getters/Setters for localStorage ---
+        function setState(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function getState(key, defaultValue = null) {
+            const value = localStorage.getItem(key);
+            try {
+                return value !== null ? JSON.parse(value) : defaultValue;
+            } catch (e) {
+                console.error(`Error parsing localStorage key "${key}":`, e);
+                localStorage.removeItem(key); // Remove corrupted data
+                return defaultValue;
+            }
+        }
+
+        // --- UI Elements ---
+        const nameEntryView = document.getElementById('name-entry-view');
+        const adminStatusView = document.getElementById('admin-status-view');
+        const subjectNameInput = document.getElementById('subjectNameInput');
+        const resultsTableBody = document.querySelector('#resultsTable tbody');
+        const noResultsMsg = document.getElementById('no-results-msg');
+        const downloadButton = document.getElementById('downloadButton');
+        const messageArea = document.getElementById('message-area');
+
+        // --- Functions ---
+        function setName() {
+            const newName = subjectNameInput.value.trim();
+            if (!newName) {
+                showMessage("Koehenkilön nimi ei voi olla tyhjä.", "error");
+                return;
+            }
+            setState(LS_SUBJECT_NAME, newName);
+            resetGame(true); // Reset game state but keep the new name
+            showMessage(`Nimi "${newName}" asetettu. Odota koehenkilön aloitusta.`, "status");
+            subjectNameInput.value = ''; // Clear input field
+            updateAdminDisplay();
+        }
+
+        function resetForNewSubject() {
+            resetGame(false); // Reset game including name
+            showMessage("Valmis uudelle koehenkilölle.", "status");
+            updateAdminDisplay();
+        }
+
+        function resetGame(keepName = false) {
+            console.log("Admin: Resetting game state...");
+            setState(LS_DEFLECTION, INITIAL_DEFLECTION);
+            setState(LS_WRONG_GUESSES, 0);
+            setState(LS_GAME_OVER, false);
+            setState(LS_GAME_STARTED, false);
+            setState(LS_DEFLECTION_HISTORY, "");
+            setState(LS_SIMULATED_POSITION, null); // No position set initially
+            if (!keepName) {
+                setState(LS_SUBJECT_NAME, "");
+                console.log("Admin: Current subject name cleared.");
+            }
+            console.log("Admin: Game reset complete.");
+        }
+
+        function showMessage(text, type = "info") {
+            messageArea.innerHTML = `<p class="${type}">${text}</p>`;
+            // Clear message after a while
+            // setTimeout(() => { messageArea.innerHTML = ''; }, 5000);
+        }
+
+        function updateAdminDisplay() {
+            const currentSubjectName = getState(LS_SUBJECT_NAME, "");
+            const gameStarted = getState(LS_GAME_STARTED, false);
+            const gameOver = getState(LS_GAME_OVER, false);
+            const deflection = getState(LS_DEFLECTION, INITIAL_DEFLECTION);
+            const wrongGuesses = getState(LS_WRONG_GUESSES, 0);
+            const deflectionHistory = getState(LS_DEFLECTION_HISTORY, "");
+            const allResults = getState(LS_ALL_RESULTS, []);
+
+            let statusHTML = "";
+
+            if (currentSubjectName) {
+                nameEntryView.style.display = 'none';
+                adminStatusView.style.display = 'block';
+
+                if (gameStarted && !gameOver) {
+                    statusHTML = `
+                        <h2>Testi käynnissä</h2>
+                        <p class='status'>Koehenkilö: <strong>${currentSubjectName}</strong></p>
+                        <p>Nykyinen (simuloitu) poikkeama: ${deflection.toFixed(2)} astetta</p>
+                        <p>Väärät arvaukset: ${wrongGuesses}/${MAX_WRONG_GUESSES}</p>
+                        <p>Historia: ${deflectionHistory || "Ei vielä arvauksia"}</p>
+                        <p><i>Tämä sivu päivittyy automaattisesti.</i></p>
+                        <button class="secondary-btn" onclick="resetForNewSubject()">Keskeytä ja Nollaa</button>
+                    `;
+                } else if (gameOver) {
+                    statusHTML = `
+                        <h2>Testi päättynyt</h2>
+                        <p class='status'>Koehenkilö: <strong>${currentSubjectName}</strong></p>
+                    `;
+                     // Try to find the most recent result for this subject
+                     const lastResult = allResults.find(r => r.name === currentSubjectName); // Note: this finds the *first* match if multiple, better to get last from storage if possible, but simple for now.
+                     const finalDeflection = lastResult ? lastResult.finalDeflection : deflection; // Show recorded or current
+                     const finalHistory = lastResult ? lastResult.history : deflectionHistory + finalDeflection.toFixed(2);
+                     statusHTML += `<p>Tulos (viimeinen/tallennettu poikkeama): ${finalDeflection.toFixed(2)} astetta</p>`;
+                     statusHTML += `<p>Historia: ${finalHistory}</p>`;
+                     statusHTML += `
+                        <h3>Seuraava vaihe:</h3>
+                        <button class="secondary-btn" onclick="resetForNewSubject()">Syötä uusi koehenkilö (Nollaa)</button>
+                    `;
+                     // Download button is handled separately below the results table
+                } else { // Name set, waiting for subject to start
+                     statusHTML = `
+                        <h2>Odotetaan aloitusta</h2>
+                        <p class='status'>Testi valmis aloitettavaksi koehenkilölle: <strong>${currentSubjectName}</strong></p>
+                        <p>Ohjeista koehenkilö avaamaan <code>subject.html</code> samassa selaimessa.</p>
+                        <p><i>Tämä sivu päivittyy, kun koehenkilö aloittaa.</i></p>
+                        <button class="secondary-btn" onclick="resetForNewSubject()">Vaihda / Nollaa koehenkilö</button>
+                    `;
+                }
+            } else {
+                // No name set, show name entry
+                nameEntryView.style.display = 'block';
+                adminStatusView.style.display = 'none';
+                statusHTML = ''; // Clear status view content
+                 // Optionally clear the message area if switching back to name entry
+                 // messageArea.innerHTML = '';
+            }
+
+            adminStatusView.innerHTML = statusHTML;
+            populateResultsTable(); // Always update the results table
+        }
+
+        function populateResultsTable() {
+            const allResults = getState(LS_ALL_RESULTS, []);
+            resultsTableBody.innerHTML = ''; // Clear existing rows
+
+            if (allResults.length > 0) {
+                noResultsMsg.style.display = 'none';
+                downloadButton.style.display = 'inline-block'; // Show download button
+                 // Display newest first
+                for (let i = allResults.length - 1; i >= 0; i--) {
+                    const result = allResults[i];
+                    const row = resultsTableBody.insertRow();
+                    row.insertCell(0).textContent = result.name;
+                    row.insertCell(1).textContent = result.finalDeflection.toFixed(2);
+                    row.insertCell(2).textContent = result.history;
+                }
+            } else {
+                noResultsMsg.style.display = 'block';
+                downloadButton.style.display = 'none'; // Hide download button
+            }
+        }
+
+        function generateCSV() {
+            const allResults = getState(LS_ALL_RESULTS, []);
+            if (allResults.length === 0) return "";
+
+            let csvContent = "KoehenkiloNimi,LopputulosAsteina,PoikkeamaHistoria\n";
+
+            allResults.forEach(result => {
+                const name = String(result.name).replace(/"/g, '""'); // Escape double quotes
+                const finalDeflection = result.finalDeflection.toFixed(2);
+                const history = String(result.history).replace(/"/g, '""'); // Escape double quotes
+
+                // Enclose fields in double quotes if they might contain commas or newlines
+                csvContent += `"${name}","${finalDeflection}","${history}"\n`;
+            });
+            return csvContent;
+        }
+
+        function downloadCSV() {
+            const csvData = generateCSV();
+            if (!csvData) {
+                showMessage("Ei tuloksia ladattavaksi.", "error");
+                return;
+            }
+
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            if (link.download !== undefined) { // Feature detection
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "stereotest_results.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                 showMessage("Tulokset ladattu (stereotest_results.csv).", "status");
+            } else {
+                 showMessage("CSV-lataus ei onnistu tässä selaimessa.", "error");
+            }
+        }
+
+
+        // --- Initialization and Event Listener ---
+        window.addEventListener('load', () => {
+            console.log("Admin page loaded.");
+            updateAdminDisplay(); // Initial display based on current state
+        });
+
+        // Listen for changes made by the other page (subject.html)
+        window.addEventListener('storage', (event) => {
+            console.log(`Admin received storage event for key: ${event.key}`);
+            // Check if the key belongs to our test state
+            if (event.key && event.key.startsWith(LS_KEY_PREFIX)) {
+                 updateAdminDisplay(); // Update display if any relevant state changes
+            }
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stereonäkötesti</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        h1, h2, h3 { color: #333; }
+        p { color: #555; }
+        .container { max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button, input[type=submit] { font-size: 24px; padding: 15px 20px; margin: 10px 5px; width: calc(80% - 10px); max-width: 300px; border: none; border-radius: 10px; background-color: #007BFF; color: white; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover, input[type=submit]:hover { background-color: #0056b3; }
+        button.large-btn { width: calc(90% - 10px); padding: 25px 20px; font-size: 30px; } /* Larger buttons for subject */
+        button.secondary-btn { background-color: #6c757d; }
+        button.secondary-btn:hover { background-color: #5a6268; }
+        .status { font-weight: bold; margin: 15px 0; font-size: 1.1em; }
+        .error { color: red; font-weight: bold; }
+        .debug { font-size: 0.8em; color: #888; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Stereonäkötesti</h1>
+        <div id="subject-content">
+            <!-- Content dynamically updated by JS -->
+        </div>
+         <!-- <div id="debug-info" class="debug"></div> -->
+    </div>
+
+    <script>
+        // --- Constants ---
+        const MAX_WRONG_GUESSES = 3;
+        const INITIAL_DEFLECTION = 30.0;
+        const MAX_DEFLECTION = 37.0;
+        const MIN_DEFLECTION = 0.5;
+
+        // --- State Variables (Keys for localStorage) ---
+        // Must match the keys used in admin.html
+        const LS_KEY_PREFIX = 'stereoTest_';
+        const LS_SUBJECT_NAME = LS_KEY_PREFIX + 'subjectName';
+        const LS_GAME_STARTED = LS_KEY_PREFIX + 'gameStarted';
+        const LS_GAME_OVER = LS_KEY_PREFIX + 'gameOver';
+        const LS_DEFLECTION = LS_KEY_PREFIX + 'deflection';
+        const LS_WRONG_GUESSES = LS_KEY_PREFIX + 'wrongGuesses';
+        const LS_DEFLECTION_HISTORY = LS_KEY_PREFIX + 'deflectionHistory';
+        const LS_ALL_RESULTS = LS_KEY_PREFIX + 'allResults';
+        const LS_SIMULATED_POSITION = LS_KEY_PREFIX + 'simulatedPosition'; // 'front' or 'back'
+
+        // --- Getters/Setters for localStorage ---
+        function setState(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function getState(key, defaultValue = null) {
+             const value = localStorage.getItem(key);
+             try {
+                return value !== null ? JSON.parse(value) : defaultValue;
+             } catch (e) {
+                console.error(`Error parsing localStorage key "${key}":`, e);
+                 localStorage.removeItem(key); // Remove corrupted data
+                 return defaultValue;
+             }
+        }
+
+        // --- UI Elements ---
+        const subjectContentDiv = document.getElementById('subject-content');
+        // const debugInfoDiv = document.getElementById('debug-info'); // Optional for debugging
+
+        // --- Functions ---
+
+        function startGame() {
+            const currentSubjectName = getState(LS_SUBJECT_NAME, "");
+            if (!currentSubjectName) {
+                // This shouldn't happen if the UI logic is correct, but double-check
+                alert("Virhe: Nimeä ei ole asetettu. Odota valvojan toimia.");
+                return;
+            }
+            console.log(`Subject: Starting game for ${currentSubjectName}`);
+            setState(LS_GAME_STARTED, true);
+            setState(LS_GAME_OVER, false); // Ensure game over is false
+            setState(LS_WRONG_GUESSES, 0); // Reset wrong guesses
+            setState(LS_DEFLECTION, INITIAL_DEFLECTION); // Reset deflection
+            setState(LS_DEFLECTION_HISTORY, ""); // Reset history
+
+            simulateNextPosition(); // Set the first position
+            updateSubjectDisplay();
+        }
+
+        function simulateNextPosition() {
+            // Randomly decide if the next simulated position is front or back
+            const isFront = Math.random() < 0.5;
+            const position = isFront ? 'front' : 'back';
+            setState(LS_SIMULATED_POSITION, position);
+            console.log(`Subject: Next simulated position set to ${position}`);
+            // In a real scenario, this is where the servo would move after a reset movement
+        }
+
+        function handleGuess(answer) { // answer is 'front' or 'back'
+            const gameStarted = getState(LS_GAME_STARTED, false);
+            const gameOver = getState(LS_GAME_OVER, false);
+
+            if (gameOver || !gameStarted) {
+                console.warn("Subject: Guess ignored, game not running or already over.");
+                return; // Ignore guess if game isn't running or is over
+            }
+
+            const actualPosition = getState(LS_SIMULATED_POSITION, null);
+            let deflection = getState(LS_DEFLECTION, INITIAL_DEFLECTION);
+            let wrongGuesses = getState(LS_WRONG_GUESSES, 0);
+            let deflectionHistory = getState(LS_DEFLECTION_HISTORY, "");
+
+            if (!actualPosition) {
+                console.error("Subject: Cannot handle guess, simulated position not set!");
+                // Maybe try simulating a new one? Or just ignore? For now, ignore.
+                return;
+            }
+
+            console.log(`Subject: Guessed ${answer}. Actual simulated position was ${actualPosition}.`);
+
+            const correct = (answer === actualPosition);
+
+            if (correct) {
+                console.log(" -> Correct!");
+                deflection *= 0.75;
+                deflection = Math.max(MIN_DEFLECTION, deflection); // Ensure minimum deflection
+            } else {
+                console.log(" -> Incorrect!");
+                wrongGuesses++;
+                deflection *= 1.5;
+                deflection = Math.min(MAX_DEFLECTION, deflection); // Ensure maximum deflection
+                console.log(`Wrong guesses: ${wrongGuesses}/${MAX_WRONG_GUESSES}`);
+            }
+
+            // Update state BEFORE checking for game over based on wrong guesses
+             setState(LS_DEFLECTION, deflection);
+             setState(LS_WRONG_GUESSES, wrongGuesses);
+
+             // Add current deflection (before this guess outcome) to history string
+             // Store history like: 30.00 -> 22.50 -> ...
+             if (deflectionHistory) {
+                 deflectionHistory += " -> ";
+             }
+              // Append the deflection *before* this guess outcome was applied
+             const previousDeflection = deflection / (correct ? 0.75 : 1.5); // Calculate what it was
+             deflectionHistory += previousDeflection.toFixed(2);
+             setState(LS_DEFLECTION_HISTORY, deflectionHistory);
+
+
+            if (wrongGuesses >= MAX_WRONG_GUESSES) {
+                console.log("Subject: Game Over!");
+                setState(LS_GAME_OVER, true);
+                saveResult();
+            } else {
+                // Prepare for the next guess
+                simulateNextPosition();
+            }
+
+            updateSubjectDisplay(); // Update UI after processing guess
+        }
+
+        function saveResult() {
+            const currentSubjectName = getState(LS_SUBJECT_NAME, "");
+            const finalDeflection = getState(LS_DEFLECTION, INITIAL_DEFLECTION);
+            let history = getState(LS_DEFLECTION_HISTORY, "");
+             // Add the final deflection value that caused the game over or the last correct one
+             history += " -> " + finalDeflection.toFixed(2) + " (End)";
+
+
+            if (!currentSubjectName) {
+                console.error("Subject: Cannot save result, subject name is missing!");
+                return;
+            }
+
+            const resultData = {
+                name: currentSubjectName,
+                finalDeflection: finalDeflection, // Record the deflection at the point of game over
+                history: history,
+                timestamp: new Date().toISOString() // Add timestamp
+            };
+
+            const allResults = getState(LS_ALL_RESULTS, []);
+            allResults.push(resultData);
+            setState(LS_ALL_RESULTS, allResults);
+            console.log("Subject: Result saved", resultData);
+        }
+
+        function updateSubjectDisplay() {
+            const currentSubjectName = getState(LS_SUBJECT_NAME, "");
+            const gameStarted = getState(LS_GAME_STARTED, false);
+            const gameOver = getState(LS_GAME_OVER, false);
+            const deflection = getState(LS_DEFLECTION, INITIAL_DEFLECTION); // Get current deflection for display if needed
+
+            let contentHTML = "";
+            // let debugHTML = `Name: ${currentSubjectName}, Started: ${gameStarted}, Over: ${gameOver}, Defl: ${deflection?.toFixed(2)}, Wrongs: ${getState(LS_WRONG_GUESSES, 0)}`; // Optional Debugging
+
+            if (!currentSubjectName) {
+                contentHTML = "<p class='status'>Odota, että kokeen valvoja asettaa nimesi järjestelmään <code>admin.html</code>-sivulla.</p>";
+            } else if (!gameStarted) {
+                contentHTML = `
+                    <p>Testi valmis alkamaan sinulle: <strong>${currentSubjectName}</strong></p>
+                    <button class='large-btn' onclick='startGame()'>Aloita testi</button>
+                `;
+            } else if (gameOver) {
+                contentHTML = `
+                    <h2>Testi päättynyt!</h2>
+                    <p class='status'>Lopullinen tarkkuus: noin ${deflection.toFixed(2)} astetta</p>
+                    <p>Odota kokeen valvojan ohjeita.</p>
+                `;
+                // You could show the history here too:
+                // contentHTML += `<p style='font-size:0.9em; color:grey;'>Historia: ${getState(LS_DEFLECTION_HISTORY, "")} -> ${deflection.toFixed(2)}</p>`;
+            } else { // Game in progress
+                 contentHTML = `
+                    <p>Koehenkilö: <strong>${currentSubjectName}</strong></p>
+                    <p>Onko keskimmäinen sauva lähempänä vai kauempana kuin reunimmaiset sauvat?</p>
+                    <button class='large-btn' onclick="handleGuess('front')">Lähellä</button>
+                    <br>
+                    <button class='large-btn secondary-btn' onclick="handleGuess('back')">Kaukana</button>
+                `;
+                // debugHTML += `, Simulated Pos: ${getState(LS_SIMULATED_POSITION, 'N/A')}`; // Optional Debugging
+            }
+
+            subjectContentDiv.innerHTML = contentHTML;
+            // if (debugInfoDiv) debugInfoDiv.innerHTML = debugHTML; // Optional Debugging
+        }
+
+        // --- Initialization and Event Listener ---
+        window.addEventListener('load', () => {
+            console.log("Subject page loaded.");
+            updateSubjectDisplay(); // Initial display based on current state
+        });
+
+        // Listen for changes made by the other page (admin.html)
+         window.addEventListener('storage', (event) => {
+            console.log(`Subject received storage event for key: ${event.key}`);
+             // Check if the key belongs to our test state, especially name changes or resets
+             if (event.key && event.key.startsWith(LS_KEY_PREFIX)) {
+                 updateSubjectDisplay(); // Update display if any relevant state changes
+             }
+         });
+
+    </script>
+</body>
+</html>
