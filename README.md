@@ -1,3 +1,5 @@
+![Laite](Näyttökuva 2025-04-04 115411.png)
+
 # Ihmisen syvyysnäön testauslaite
 
 ## Laitteisto:
