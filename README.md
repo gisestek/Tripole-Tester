@@ -9,32 +9,63 @@ Hardware:
 -   thingiverse: 
 
 
+# Stereonäkötestilaitteen Katseluetäisyys
 
-Kaava:
-Stereotarkkuus (η, radiaaneina) ≈ (Silmien välinen etäisyys (IPD) * Syvyysero (Δd)) / (Katseluetäisyys (D))²
+Tässä dokumentissa lasketaan suositeltu katseluetäisyys stereonäkötestilaitteelle, jotta sillä voidaan mitata stereonäön tarkkuutta noin 10 kaarisekunnin tasolle asti.
 
-Tiedossa olevat ja oletetut arvot:
+## Testilaitteen Rakenne
 
-Tavoiteltu stereotarkkuus (η): 10 kaarisekuntia.
-Muunnetaan radiaaneiksi:
-1 aste = 3600 kaarisekuntia
-10 kaarisekuntia = 10 / 3600 astetta ≈ 0.002778 astetta
-Radiaaneina: η = (10 / 3600) * (π / 180) ≈ 4.848 * 10⁻⁵ radiaania.
-Silmien välinen etäisyys (IPD): Tätä ei annettu, mutta käytetään yleistä keskiarvoa 65 mm = 0.065 m. Huomaa, että tämä on oletus ja todellinen IPD vaihtelee henkilöittäin.
-Syvyysero (Δd): Tämä on se fyysinen etäisyys etu- tai takasuunnassa, jonka keskimmäinen tolppa liikkuu suhteessa reunimmaisiin tolppiin. Kysymyksessä mainitaan keskimmäisen tolpan liikerata olevan noin 18 mm. Oletetaan, että tämä tarkoittaa ±9 mm liikettä keskikohdasta (reunimmaisten tolppien tasosta). Jotta voisimme testata vähintään 10 kaarisekunnin tarkkuutta, meidän tulee laskea etäisyys, jolla laitteen suurin tuottama syvyysero (Δd_max = 9 mm) vastaa 10 kaarisekunnin parallaksia.
-Δd_max = 9 mm = 0.009 m.
-Laskenta:
-Ratkaistaan kaavasta katseluetäisyys D:
-D² ≈ (IPD * Δd) / η
-D ≈ √[ (IPD * Δd) / η ]
+Testi perustuu klassiseen Howard-Dolman -testin periaatteeseen. Laitteessa on kolme pystysuoraa tolppaa (tai sauvaa) rivissä. Koehenkilö katsoo tolppia tietytä etäisyydeltä. Keskimmäistä tolppaa voidaan liikuttaa servo-ohjatusti eteen- tai taaksepäin suhteessa reunimmaisiin tolppiin. Koehenkilön tehtävä on arvioida, onko keskimmäinen tolppa lähempänä vai kauempana kuin reunimmaiset.
 
-Sijoitetaan arvot kaavaan käyttäen laitteen suurinta syvyyseroa (Δd_max) ja tavoitetarkkuutta (η):
-D ≈ √[ (0.065 m * 0.009 m) / (4.848 * 10⁻⁵) ]
-D ≈ √[ (0.000585 m²) / (4.848 * 10⁻⁵) ]
-D ≈ √[ 12.067 ] m
-D ≈ 3.47 m
+![Testin periaatekuva](stereonäkötesti.png)
+*(Oletetaan, että kuva `stereonäkötesti.png` on samassa hakemistossa tai linkki päivitetään)*
 
-Tulkinta:
-Laskelman mukaan testilaitteen tulisi olla noin 3,5 metrin etäisyydellä koehenkilöstä. Tällä etäisyydellä keskimmäisen tolpan liikuttaminen sen maksimiasentoon (9 mm eteen tai taakse reunimmaisiin nähden) aiheuttaa silmissä noin 10 kaarisekunnin suuruisen parallaksieron.
+**Laitteiston parametrit:**
+* Tolppien välinen sivuttaisetäisyys: n. 10 mm
+* Keskimmäisen tolpan liikerata (syvyyssuunnassa): n. 18 mm (oletetaan ±9 mm keskikohdasta)
 
-Jos henkilö pystyy tällä etäisyydellä erottamaan, onko maksimisiirtymällä oleva keskimmäinen tolppa lähempänä vai kauempana, hänen stereonäkönsä tarkkuus on vähintään 10 kaarisekuntia. Testi itsessään pyrkii löytämään pienemmän siirtymän (ja siten pienemmän parallaksikulman), jonka henkilö vielä erottaa, mutta 3,5 metriä on etäisyys, jolla 10 kaarisekunnin tavoitetaso on saavutettavissa laitteen liikeradan puitteissa.
+## Laskennan Perusteet
+
+Stereonäön tarkkuus (η) kuvaa pienintä syvyyseroa, jonka henkilö pystyy havaitsemaan kahden eri etäisyydellä olevan kohteen välillä. Se ilmaistaan usein kulmayksiköissä (kaarisekunteina) ja riippuu silmien välisestä etäisyydestä (IPD), kohteiden välisestä fyysisestä syvyyserosta (Δd) ja katseluetäisyydestä (D).
+
+**Kaava:**
+Stereotarkkuus radiaaneina voidaan approksimoida kaavalla:
+
+`η (rad) ≈ (IPD * Δd) / D²`
+
+Missä:
+* `η`: Stereotarkkuus radiaaneina
+* `IPD`: Silmien välinen etäisyys (Interpupillary distance) metreinä
+* `Δd`: Kohteiden välinen syvyysero metreinä
+* `D`: Katseluetäisyys metreinä
+
+## Parametrit ja Laskenta
+
+Tavoitteena on laskea etäisyys `D`, jolla laitteen suurin mahdollinen syvyysero `Δd_max` tuottaa juuri 10 kaarisekunnin parallaksieron.
+
+1.  **Tavoiteltu stereotarkkuus (η):**
+    * `η = 10 kaarisekuntia`
+    * Muunnos radiaaneiksi: `10" = (10 / 3600) * (π / 180) rad ≈ 4.848 * 10⁻⁵ rad`
+
+2.  **Silmien välinen etäisyys (IPD):**
+    * Käytetään yleistä keskiarvoa: `IPD ≈ 65 mm = 0.065 m`
+    * *Huom: Tämä on oletus, todellinen IPD vaihtelee.*
+
+3.  **Suurin syvyysero (Δd_max):**
+    * Laitteen liikerata on 18 mm, joten suurin siirtymä keskikohdasta on puolet siitä.
+    * `Δd_max = 18 mm / 2 = 9 mm = 0.009 m`
+
+4.  **Katseluetäisyyden (D) ratkaiseminen:**
+    * Muokataan kaavaa: `D² ≈ (IPD * Δd) / η`
+    * `D ≈ √[ (IPD * Δd_max) / η ]`
+    * Sijoitetaan arvot:
+        `D ≈ √[ (0.065 m * 0.009 m) / (4.848 * 10⁻⁵ rad) ]`
+        `D ≈ √[ 0.000585 m² / 4.848 * 10⁻⁵ ]`
+        `D ≈ √[ 12.067 m² ]`
+        `D ≈ 3.47 m`
+
+## Johtopäätös
+
+Laskelman perusteella testilaitteen suositeltu katseluetäisyys on noin **3,5 metriä**.
+
+Tällä etäisyydellä laitteen suurin fyysinen syvyyssiirtymä (9 mm) vastaa noin 10 kaarisekunnin stereotarkkuutta (olettaen 65 mm IPD). Tämä mahdollistaa testauksen tavoitellulla tarkkuustasolla laitteen mekaanisten rajoitusten puitteissa. Testiprotokollassa pyritään löytämään pienin havaittava siirtymä, mutta tämä laskettu etäisyys varmistaa, että 10 kaarisekunnin taso on saavutettavissa.
