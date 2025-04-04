@@ -10,7 +10,7 @@ Testilaite muodostaa WiFI-tukiaseman, johon liitytään kahdella laitteella: 1. 
 
 ## Käyttö:
 
-Kun virrat on päällä, molemmilla laitteilla liitytään WiFiin "Sterevisiontest" (salasana: 12345678)
+Kun virrat on päällä, molemmilla laitteilla liitytään WiFiin "Stereovisiontest" (salasana: 12345678)
 
 Testaaja menee selaimella osoitteeseen http://192.168.4.1/admin
 
