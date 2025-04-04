@@ -1,12 +1,12 @@
-#Human depth perception test device#
+# Ihmisen syvyysnäön testauslaite
 
+## Laitteisto:
 
-Hardware:
-- ESP32
-- 9g hobby servo
-- steel wire (i used welding filler rod)
-- 3D printed parts to guide the wire
--   thingiverse: 
+* ESP32
+* 9g sservo
+* Teräslanka (käytin hitsauslankaa)
+* 3D-tulostetut osat 
+* [Onshape-dokumentti 3D-malleista](https://cad.onshape.com/documents/015ba60578bb0acbbb4cbba4/w/e4783b3f15ab7f564ce377d3/e/8b8e0c89aea4ec2eb4cf4481?renderMode=0&uiState=67ef9e59e533a868c3031aed)
 
 
 # Stereonäkötestilaitteen Katseluetäisyys
