@@ -4,6 +4,18 @@
 
 Testi perustuu klassiseen Howard-Dolman -testin periaatteeseen. Laitteessa on kolme pystysuoraa tolppaa (tai sauvaa) rivissä. Koehenkilö katsoo tolppia tietytä etäisyydeltä. Keskimmäistä tolppaa voidaan liikuttaa servo-ohjatusti eteen- tai taaksepäin suhteessa reunimmaisiin tolppiin. Koehenkilön tehtävä on arvioida, onko keskimmäinen tolppa lähempänä vai kauempana kuin reunimmaiset. Etäisyysero reunimmaisiin tolppiin pienenee testin edetessä, ja kun testattava on tehny kolme virhettä, on löydetty stereoerottelykyvyn raja.
 
+Testilaite muodostaa WiFI-tukiaseman, johon liitytään kahdella laitteella: 1. Testaajan laite sekä 2. Testattavan pääte.
+* Testaajan laitteessa syötetään testihenkilön nimi ja aloitetaan uusi testi, voi seurata testin etenemistä sekä kerätään tulokset. Tulokset voi ladata myös .csv-tiedostona
+* Testattavan päätteessä (kännykkä on hyvä) on painikkeet, joilla arvio keskitolpan etäisyydestä tehdään (Lähellä/Kaukana)
+
+## Käyttö:
+
+Kun virrat on päällä, molemmilla laitteilla liitytään WiFiin "Sterevisiontest" (salasana: 12345678)
+
+Testaaja menee selaimella osoitteeseen http://192.168.4.1/admin
+
+Testattava menee selaimella osoitteeseen http://192.168.4.1/
+
 ![Testin periaatekuva](stereonäkötesti.png)
 
 ## Laitteisto:
