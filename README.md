@@ -22,14 +22,14 @@ Testi perustuu klassiseen Howard-Dolman -testin periaatteeseen. Laitteessa on ko
 
 **Laitteiston parametrit:**
 * Tolppien välinen sivuttaisetäisyys: n. 10 mm
-* Keskimmäisen tolpan liikerata (syvyyssuunnassa): n. 18 mm (oletetaan ±9 mm keskikohdasta)
+* Keskimmäisen tolpan liikerata (syvyyssuunnassa): n. 18 mm ( ±9 mm keskikohdasta)
 
 ## Laskennan Perusteet
 
 Stereonäön tarkkuus (η) kuvaa pienintä syvyyseroa, jonka henkilö pystyy havaitsemaan kahden eri etäisyydellä olevan kohteen välillä. Se ilmaistaan usein kulmayksiköissä (kaarisekunteina) ja riippuu silmien välisestä etäisyydestä (IPD), kohteiden välisestä fyysisestä syvyyserosta (Δd) ja katseluetäisyydestä (D).
 
 **Kaava:**
-Stereotarkkuus radiaaneina voidaan approksimoida kaavalla:
+Stereotarkkuus radiaaneina approksimoidaan kaavalla:
 
 `η (rad) ≈ (IPD * Δd) / D²`
 
@@ -66,6 +66,6 @@ Tavoitteena on laskea etäisyys `D`, jolla laitteen suurin mahdollinen syvyysero
 
 ## Johtopäätös
 
-Laskelman perusteella testilaitteen suositeltu katseluetäisyys on noin **3,5 metriä**.
+Testilaitteen suositeltu katseluetäisyys on noin **3,5 metriä**.
 
 Tällä etäisyydellä laitteen suurin fyysinen syvyyssiirtymä (9 mm) vastaa noin 10 kaarisekunnin stereotarkkuutta (olettaen 65 mm IPD). Tämä mahdollistaa testauksen tavoitellulla tarkkuustasolla laitteen mekaanisten rajoitusten puitteissa. Testiprotokollassa pyritään löytämään pienin havaittava siirtymä, mutta tämä laskettu etäisyys varmistaa, että 10 kaarisekunnin taso on saavutettavissa.
