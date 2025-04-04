@@ -18,7 +18,7 @@ Tässä dokumentissa lasketaan suositeltu katseluetäisyys stereonäkötestilait
 Testi perustuu klassiseen Howard-Dolman -testin periaatteeseen. Laitteessa on kolme pystysuoraa tolppaa (tai sauvaa) rivissä. Koehenkilö katsoo tolppia tietytä etäisyydeltä. Keskimmäistä tolppaa voidaan liikuttaa servo-ohjatusti eteen- tai taaksepäin suhteessa reunimmaisiin tolppiin. Koehenkilön tehtävä on arvioida, onko keskimmäinen tolppa lähempänä vai kauempana kuin reunimmaiset.
 
 ![Testin periaatekuva](stereonäkötesti.png)
-*(Oletetaan, että kuva `stereonäkötesti.png` on samassa hakemistossa tai linkki päivitetään)*
+
 
 **Laitteiston parametrit:**
 * Tolppien välinen sivuttaisetäisyys: n. 10 mm
