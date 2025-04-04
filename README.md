@@ -16,6 +16,14 @@ Testaaja menee selaimella osoitteeseen http://192.168.4.1/admin
 
 Testattava menee selaimella osoitteeseen http://192.168.4.1/
 
+Kansion admin.html ja subject.html ovat emulaattoreita, joilla voi kokeilla interaktiivisesti millaiset GUI:t ovat.
+
+![Admin1](admin1.png)
+![subject1](subject1.png)
+![subject2](subject2.png)
+![subject3](subject3.png)
+![Admin2](admin2.png)
+
 ![Testin periaatekuva](stereonäkötesti.png)
 
 ## Laitteisto:
