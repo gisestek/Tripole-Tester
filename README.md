@@ -1,4 +1,4 @@
-![Laite](image.png)
+![Laite](image.gif)
 
 # Ihmisen syvyysnäön testauslaite
 
