@@ -5,11 +5,6 @@
 #include <string>   // Added for string manipulation (optional but good practice)
 #include <sstream>  // Added for CSV generation
 
-// Jukka Pajula
-// 2025
-// Jääkäriprikaati, OPOS
-// Versio 2.2 - Korjattu puuttuvat aaltosulut
-
 // WiFi Access Point credentials
 const char *ssid = "Stereovisiontest";
 const char *password = "12345678"; // Käytä vahvempaa salasanaa tarvittaessa
